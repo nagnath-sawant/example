@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ws="http://www.mulesoft.org/schema/mule/ws" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:json="http://www.mulesoft.org/schema/mule/json"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:docker="http://www.mulesoft.org/schema/mule/docker" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/docker http://www.mulesoft.org/schema/mule/docker/current/mule-docker.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd
+http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
+http://www.mulesoft.org/schema/mule/ws http://www.mulesoft.org/schema/mule/ws/current/mule-ws.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+    <context:property-placeholder location="mule-app.properties"/>
+    
+    <docker:HTTP-Docker-Config name="Docker__HTTP_Docker_Config" dockerHostIP="${docker.host}" dockerHostPort="${docker.port}" apiVersion="${docker.apiVersion}" doc:name="Docker: HTTP Docker Config"/>
+    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
+        <flow name="docker-build-image-and-run-application">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/runapp" doc:name="HTTP"/>
+        <docker:build-image config-ref="Docker__HTTP_Docker_Config" dockerFilePath="${build.dockerFile}"  doc:name="Build image from Dockerfile" forcerm="false" pullImage="false" removeContainers="true">
+            <docker:image-tags>
+                <docker:image-tag>${build.imageName}:${build.imageTag}</docker:image-tag>
+            </docker:image-tags>
+        </docker:build-image>
+        <logger message="Build Image response:  #[payload]" level="INFO" doc:name="Log build image response"/>
+        <docker:run-container config-ref="Docker__HTTP_Docker_Config" imageName="${build.imageName}" imageTag="${build.imageTag}" containerName="${app.containerName}" doc:name="Run container">
+        </docker:run-container>
+        <docker:inspect-container config-ref="Docker__HTTP_Docker_Config" containerName="${app.containerName}" doc:name="Inspect container"/>
+        <json:object-to-json-transformer doc:name="InspectContainerResponse to JSON"/>
+        <logger message="Inspect container response : #[payload]" level="INFO" doc:name="Log InspectContainerResponse"/>
+    </flow>
+    <flow name="docker-get-container-logs-applicationFlow">
+        <docker:get-container-logs config-ref="Docker__HTTP_Docker_Config" containerName="${app.containerName}" showTimeStamp="true" standardOut="true" standardError="true" doc:name="Docker (Streaming)"/>
+        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+    </flow>
+    <flow name="docker-get-container-stats-applicationFlow" initialState="stopped">
+        <docker:get-container-statistics config-ref="Docker__HTTP_Docker_Config" containerName="${app.containerName}" doc:name="Docker (Streaming)"/>
+        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+    </flow>
+</mule>
