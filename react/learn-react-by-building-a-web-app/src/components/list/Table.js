@@ -1,8 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { withRouter } from 'react-router-dom';
+import {renderChangePercent} from './../../helpers';
 import './Table.css';
 
 const Table = (props) =>{
+
+    const {history, currencies} = props;
+
+    //props.currencies
 
     return (
     <div className = "Table-container">
@@ -18,24 +24,30 @@ const Table = (props) =>{
             </thead>
 
             <tbody className="Table-body">
-            {props.currencies.map((currency) =>(
-                <tr key={currency.id}>
-                 <td>
-                     <span className="Table-rank">{currency.rank}</span>
-                     {currency.name}
-                 </td>
-                 <td>
-                     <span className="Table-dollar">$</span>
-                     {currency.price} 
-                 </td>
-                 <td> 
-                     <span className="Table-dollar">$</span>
-                     {currency.marketCap}
-                </td>
+            {currencies.map((currency) =>(
+                <tr 
+                    key={currency.id}
+                    onClick={()=>history.push(`/currency/${currency.id}`)}
+                >
+                    <td>
+                        <span className="Table-rank">{currency.rank}</span>
+                        {currency.name}
+                    </td>
 
-                <td>
-                    {props.renderChangePercent(currency.percentChange24h)}
-                </td>
+                    <td>
+                        <span className="Table-dollar">$</span>
+                        {currency.price} 
+                    </td>
+
+                    <td> 
+                        <span className="Table-dollar">$</span>
+                        {currency.marketCap}
+                    </td>
+
+                    <td>
+                        {renderChangePercent(currency.percentChange24h)}
+                    </td>
+
                 </tr>
             ))}        
             </tbody>
@@ -47,7 +59,9 @@ const Table = (props) =>{
 
 Table.propTypes ={
     currencies : PropTypes.array.isRequired,
-    renderChangePercent : PropTypes.func.isRequired
+    // Now we are using this function by importing it from helper
+    //renderChangePercent : PropTypes.func.isRequired,
+    history: PropTypes.object.isRequired
 }
 
-export default Table;
+export default withRouter(Table);

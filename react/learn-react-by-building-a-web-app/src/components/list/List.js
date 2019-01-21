@@ -1,6 +1,6 @@
 import React from 'react';
 import {handleResponse} from '../../helpers'
-import { API_URL } from '../../config';
+import {API_URL} from '../../config';
 import Loading from '../common/Loading';
 import Table from './Table';
 import Pagination from './Pagination';
@@ -8,7 +8,7 @@ import Pagination from './Pagination';
 
 class List extends React.Component{
 
-    // ES 6 classes must call super if they are subclass and this keywork is un intilized if super is not called
+    // ES 6 classes must call super if they are subclass and this keyword is un intilized if super is not called
     constructor(){
         super();
 
@@ -20,8 +20,8 @@ class List extends React.Component{
             page : 1
         };
 
-        // To allow this access inside this method
-        this.handlePaginationState = this.handlePaginationState.bind(this);
+        // To allow this access inside handlePaginationClick method
+        this.handlePaginationClick = this.handlePaginationClick.bind(this);
     }
 
 // React lifecycle hook: number of methods in REACT that will be called 
@@ -52,24 +52,13 @@ fetchCurrencies(){
       //console.log('Error', error);
     });    
 }
-renderChangePercent(percent){
-    if(percent<0){
-        return <span className="percent-fallen"> {percent}% &darr;</span>
-    }
-    else if(percent>0){
-        return <span className="percent-raised">{percent}% &uarr;</span>
-    }
-    else {
-        return <span>{percent}%</span>
-    }
-}
 
-//handlePaginationState = () =>{}
-handlePaginationState(direction){
+//handlePaginationClick = () =>{}
+handlePaginationClick(direction){
     let nextPage = this.state.page;
 
     // Increment next page if direction variable is next, otherwise decrement it
-    nextPage = direction === 'next' ? nextPage + 1 : nextPage;
+    nextPage = direction === 'next' ? nextPage + 1 : nextPage-1;
 
     this.setState({ page : nextPage }, () => { 
         //Call fetchCurrencies function inside set state's callback 
@@ -82,6 +71,7 @@ handlePaginationState(direction){
         //const {loading, error, currencies}= this.state; and we can access all variables without using this.state; eg. this.state.error => error;
         
         console.log(this.state);
+        console.log(" this.state.currencies : : ", this.state.currencies)
 
         // Render only loading component, if loading state is set to true
         if(this.state.loading){
@@ -97,13 +87,13 @@ handlePaginationState(direction){
             <div>
                 <Table 
                     currencies = {this.state.currencies} 
-                    renderChangePercent = {this.renderChangePercent}
+                   // renderChangePercent = {this.renderChangePercent}
                 />
 
                 <Pagination
                     page = {this.state.page}
                     totalPages = {this.state.totalPages}
-                    handlePaginationState = {this.handlePaginationState}
+                    handlePaginationClick = {this.handlePaginationClick}
                 />
             </div>
         );

@@ -1,7 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import {HashRouter, BrowserRouter, Route, Switch} from 'react-router-dom';
+
 import Header from './components/common/Header';
-import List from './components/list/List'
+import List from './components/list/List';
+import NotFound from './components/notFound/NotFound';
+import Details from './components/details/Details';
 
 import './index.css';
 
@@ -9,12 +13,26 @@ import './index.css';
 const App = () => {
     let title = "React Application";
     return (
-    <div>
-        <Header/>
+        <BrowserRouter>
+            <div>
+                <Header/>
+                <Switch>
+                    <Route path="/" component={List}  exact />
+                    <Route path="/currency/:id" component={Details}/>
 
-        <List/>
-    </div>
-    );
+                    <Route component={NotFound}></Route>
+                </Switch>
+            </div>
+        </BrowserRouter>
+        
+    /*
+    Code before creating router
+        <div>
+                <Header/>
+                <List/>
+        </div> 
+    */
+);
 }
 // We can define component using ES6 class, ex
 
